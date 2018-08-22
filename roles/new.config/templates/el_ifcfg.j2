@@ -1,0 +1,13 @@
+{% set iface = 'ansible_' + item.name %}
+DEVICE="{{item.name}}"
+NM_CONTROLLED="yes"
+BOOTPROTO=static
+ONBOOT=yes
+TYPE=Ethernet
+{% if item.ip_addr and item.netmask %}
+IPADDR="{{ item.ip_addr }}"
+NETMASK="{{ item.netmask }}"
+{% endif %}
+{%if item.gtw is defined %}
+GATEWAY="{{ item.gtw }}"
+{% endif %}

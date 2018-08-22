@@ -1,0 +1,68 @@
+- name: install Install a plugin to add priorities to each installed repositorie
+  yum: 
+    name: yum-plugin-priorities 
+    state: present
+  register: epelinstalled
+
+- name: install EPEL Release
+  yum: 
+    name: epel-release  
+    state: present
+
+- name: Copy a new epel.repo file
+  copy:
+    src: /etc/ansible/roles/new/files/epel.repo
+    dest: /etc/yum.repos.d/epel.repo
+    owner: root
+    group: root
+    mode: 0644
+    backup: no 
+  when: epelinstalled is success
+
+- name: install atop
+  yum:
+    name: atop
+    state: present
+  register: atopinstalled
+
+- name: Enable service atop, and not touch the running state
+  service:
+    name: atop
+    enabled: yes
+    state: started
+
+- replace:
+    path: /etc/sysconfig/atop
+    regexp: '600'
+    replace: '60'
+    backup: yes
+#  when: atopinstalled is success
+
+- name: install  vim 
+  yum: 
+    name: vim-enhanced
+    state: present
+
+#- lineinfile:
+#    path: /etc/profile
+#    insertafter: '^#add at the last line'
+#    line: "alias vi='vim'"
+
+- name: Copy a new vim config file in etc
+  copy:
+    src: /etc/ansible/roles/new/files/vimrc
+    dest: /etc/vimrc
+    owner: root
+    group: root
+    mode: 0644
+    backup: no
+
+- name: Copy a new vim config file in root
+  copy:
+    src: /etc/ansible/roles/new/files/vimrc
+    dest: /root/.vimrc
+    owner: root
+    group: root
+    mode: 0644
+    backup: no
+

@@ -1,0 +1,17 @@
+---
+- hosts: newservers
+  remote_user: root
+  roles:
+   - role: bonding
+  vars:
+  - slaves:
+    - eth0
+    - eth1
+  - bond: {name: 'bond0', ip_addr: '12.12.12.12', netmask: '255.255.0.0', gtw: '10.10.10.1' }
+  - v1: { value: true, vlan: true}
+  - vlans:
+    #- { name: 'vlan3039', ip_addr: '209.172.42.5', netmask: '255.255.255.224', gtw: '209.172.42.1' }
+    #- { name: 'vlan3040', ip_addr: '10.11.228.13', netmask: '255.255.255.0' }
+    - { name: 'vlan3040', ip_addr: '10.11.228.40', netmask: '255.255.255.0', gtw: '10.11.228.11' }
+  - dns1: 209.172.41.202
+  - dns2: 209.172.41.200

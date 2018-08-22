@@ -1,0 +1,7 @@
+---
+lbn_pkgs:
+  -  lbn-script-treesize
+  #- bridge-utils
+  #- iputils
+
+#net_path: "/etc/sysconfig/network-scripts"

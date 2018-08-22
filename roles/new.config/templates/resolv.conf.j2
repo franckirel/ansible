@@ -1,0 +1,9 @@
+{% if interfaces[0].domaine %}
+search  {{ interfaces[0].domaine }}
+{% endif %}
+{% if interfaces[0].dns1 %}
+nameserver {{ interfaces[0].dns1 }}
+{% endif %}
+{% if interfaces[0].dns2 %}
+nameserver {{ interfaces[0].dns2 }}
+{% endif %}

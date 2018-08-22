@@ -1,0 +1,48 @@
+---
+- include_tasks: epel.yml
+  when: ansible_os_family == 'RedHat and ansible_distribution == "CentOS" and ansible_distribution_major_version > '6'
+# tasks file for bonding
+- name: Add the OS specific varibles
+  include_vars: "{{ ansible_os_family }}.yml"
+- name: Install the required  packages in Redhat derivatives
+  yum: name='{{ item }}' state=installed
+  with_items: '{{network_pkgs}}'
+  when: ansible_os_family == 'RedHat'
+
+- name: Install the required packages in Debian derivatives
+  apt: name='{{ item }}' state=installed update_cache=yes
+  with_items: '{{network_pkgs}}'
+  environment: '{{env}}'
+  when: ansible_os_family == 'Debian'
+
+- name: Add the OS config files
+  include: "{{ ansible_os_family }}.yml"
+  become: yes
+
+#- name: Create configuration files 
+#  include: el.yml
+#  when: (ansible_os_family == "CentOS") or
+#        (ansible_os_family == "RedHat")
+#  become: yes
+
+- name: change hostname to myserver
+  hostname:
+    name: '{{ item }}'
+  with_items: '{{ name }}'
+  when: item is defined
+
+- name: add myself to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^127\.0\.0\.1[ \t]+localhost'
+    line: '127.0.0.1 localhost {{ item }}'
+    state: present
+  with_items: '{{ name }}'
+  when: item is defined
+
+- name: Configure resolv.conf
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+  mode: 0644
+  when:  interfaces[0].dns1 is defined
