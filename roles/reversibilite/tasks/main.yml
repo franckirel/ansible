@@ -3,6 +3,19 @@
 - include_tasks: apache.yaml
   when: ansible_os_family == "RedHat"
 
+- name: Add the OS specific varibles
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Remove lbn packages in Redhat derivatives
+  yum: name='{{ item }}' state=absent
+  with_items: '{{lbn_pkgs}}'
+  when: ansible_os_family == 'RedHat'
+
+- name: Remove lbn packages in Debian derivatives
+  apt: name='{{ item }}' state=absent update_cache=yes
+  with_items: '{{lbn_pkgs}}'
+  when: ansible_os_family == 'Debian'
+
 - name: Suppression des fichiers de script mysql
   file:
     path: "{{ item }}"
@@ -17,7 +30,6 @@
     - /usr/local/linkbynet/script/sbin/RestoreMySQL.pl
     - /etc/lbn/mysql/script/clustercheck
     - /etc/lbn/garbd/script/garbdInstance
-  become: yes
 
 - name: Suppression des fichiers de script memcached
   file:
@@ -26,7 +38,6 @@
   with_items:
     - /etc/lbn/memcached/script/memcachedInstance
     - /etc/lbn/memcached/script/memcachedListInstances"
-  become: yes
 
 - name: Suppression des fichiers de script tomcat
   file:
@@ -35,7 +46,6 @@
   with_items:
     - /etc/lbn/tomcat/script/tomcatInstance
     - /etc/lbn/tomcat/tpl
-  become: yes
 
 - name: Suppression des fichiers de script varnish
   file:
@@ -43,28 +53,18 @@
     state: absent
   with_items:
     - /etc/lbn/varnish/script/varnishInstance
-  become: yes
-
-- name: Add the OS specific varibles
-  include_vars: "{{ ansible_os_family }}.yml"
-  become: yes
-
-- name: Remove lbn packages in Redhat derivatives
-  yum: name='{{ item }}' state=absent
-  with_items: '{{lbn_pkgs}}'
-  when: ansible_os_family == 'RedHat'
-  become: yes
-
-- name: Remove lbn packages in Debian derivatives
-  apt: name='{{ item }}' state=absent update_cache=yes
-  with_items: '{{lbn_pkgs}}'
-  when: ansible_os_family == 'Debian'
-  become: yes
 
 - name: Delete files in  /home/lbn
   shell: find /home/lbn/  -type f -mindepth 2 ! -name .bash* ! -name authorized_keys ! name known_hosts ! -name .profile --delete
-  become: yes
 
 - name: Delete history
   shell: find /home/lbn/  -type f -mindepth 2 ! -name .bash_history  -exec  cat /dev/null > {} \;
-  become: yes
+
+- name: Suppression ds script du repos lbn-script-system
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /usr/local/linkbynet/script/system/sbin/history-lbn
+    - /usr/local/linkbynet/script/system/bin/check_antivirus.pl
+    - /usr/local/linkbynet/script/system/bin/check_antivirus.pl

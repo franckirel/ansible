@@ -1,7 +1,10 @@
 ---
 lbn_pkgs:
   -  lbn-script-treesize
-  #- bridge-utils
-  #- iputils
-
+  #- lbn-script-mysql
+  - lbn-script-pghotbackup
+  - lbn-script-postgresql
+  - lbn-script-cron
+  - lbn-script-mco.noarch
+  - lbn-script-mail.noarch
 #net_path: "/etc/sysconfig/network-scripts"
