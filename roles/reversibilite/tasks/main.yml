@@ -54,11 +54,26 @@
   with_items:
     - /etc/lbn/varnish/script/varnishInstance
 
-- name: Delete files in  /home/lbn
-  shell: find /home/lbn/  -type f -mindepth 2 ! -name .bash* ! -name authorized_keys ! name known_hosts ! -name .profile --delete
+#- name: Delete files in  /home/lbn
+#  shell: find /home/lbn/ -mindepth 2 -type f  ! -name '.bash*' ! -name authorized_keys ! -name known_hosts ! -name '.profile' -delete
 
-- name: Delete history
-  shell: find /home/lbn/  -type f -mindepth 2 ! -name .bash_history  -exec  cat /dev/null > {} \;
+#- name: Delete history
+#  shell: find /home/lbn/ -mindepth 2 -type f -name .bash_history -delete
+
+- name: Recursively find files in /home/lbn/
+  find:
+    paths: /home/lbn
+    file_type: file
+    hidden: yes
+    excludes: '.bash_logout,.bash_profile,.bashrc,authorized_keys,known_hosts,.profile'
+    recurse: yes
+  register: files_to_delete
+
+- name: Delete files in /home/lbn/
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ files_to_delete.files }}"
 
 - name: Suppression ds script du repos lbn-script-system
   file:
