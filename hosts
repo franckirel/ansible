@@ -44,7 +44,9 @@
 [newservers]
 192.168.1.101
 
-[reversibilite]
+[old-reversibilite]
 172.18.164.224
 172.18.164.223
 
+[reversibilite]
+172.27.68.61

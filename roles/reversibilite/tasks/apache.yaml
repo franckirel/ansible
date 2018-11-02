@@ -2,13 +2,14 @@
 - name: Remplace le fichier /etc/lbn/httpd/script/apachectl
   copy:
     src: /etc/ansible/roles/reversibilite/files/apachectl
-    dest: /etc/apachectl
+    dest: /etc/lbn/httpd/script/apachectl
     owner: root
     group: root
-    mode: 0644
+    mode: 0755
     backup: no
   become: yes
 
+# old pointp-mutc1
 - name: Suppression de fichiers de scripts apache
   file:
     path: "{{ item }}"

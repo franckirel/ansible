@@ -3,8 +3,22 @@
 - include_tasks: apache.yaml
   when: ansible_os_family == "RedHat"
 
-- name: Add the OS specific varibles
+- name: Add the OS specific variables
   include_vars: "{{ ansible_os_family }}.yml"
+
+- name: copying script
+  copy:
+    src: /etc/ansible/roles/reversibilite/files/proxy.sh
+    dest: /root/proxy.sh
+    owner: root
+    group: root
+    mode: 0755
+
+- name: execute script proxy.
+  shell: /root/proxy.sh
+  args:
+    executable: /bin/bash
+    chdir: /root
 
 - name: Remove lbn packages in Redhat derivatives
   yum: name='{{ item }}' state=absent
@@ -16,20 +30,53 @@
   with_items: '{{lbn_pkgs}}'
   when: ansible_os_family == 'Debian'
 
+- name: execute script proxy.
+  shell: /root/proxy.sh
+  args:
+    executable: /bin/bash
+
+- name: Suppression des fichiers de script puppet
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /usr/local/linkbynet/script/puppet
+    - /etc/cron.d/lbn-puppet
+    - /etc/yum.repos.d/puppet.repo
+
 - name: Suppression des fichiers de script mysql
   file:
     path: "{{ item }}"
     state: absent
   with_items:
     - /etc/lbn/mysql/script/mysqlInstance
-    - /usr/local/linkbynet/script/bin/BackupMySQL.sh
-    - /usr/local/linkbynet/script/bin/mysql-list
-    - /usr/local/linkbynet/script/bin/mysqltuner.pl
-    - /usr/local/linkbynet/script/bin/tuning-primer.sh
-    - /usr/local/linkbynet/script/sbin/snapshot.pl
-    - /usr/local/linkbynet/script/sbin/RestoreMySQL.pl
+    - /etc/lbn/mysql/script/mysqlInstance.rpmnew 
     - /etc/lbn/mysql/script/clustercheck
     - /etc/lbn/garbd/script/garbdInstance
+      #- /usr/local/linkbynet/script/mysql/bin/MonitorMySQL.pl
+      #- /usr/local/linkbynet/script/mysql/bin/RestoreMySQL.pl
+      #- /usr/local/linkbynet/script/mysql/bin/logswatch.pl
+      #- /usr/local/linkbynet/script/mysql/bin/TakeMySQLSnapshot.sh
+      #- /usr/local/linkbynet/script/mysql/bin/RemoveMySQLSnapshot.sh
+      #- /usr/local/linkbynet/script/mysql/bin/cleanBinlogs.sh
+      #- /usr/local/linkbynet/script/mysql/bin/cleanCacheTables.sh
+      #- /usr/local/linkbynet/script/mysql/bin/logswatch.pl
+    - /usr/local/linkbynet/script/mysql/bin/innotop
+      #- /usr/local/linkbynet/script/bin/BackupMySQL.sh
+    - /usr/local/linkbynet/script/mysql/bin/mysql-list
+      #- /usr/local/linkbynet/script/bin/mysqltuner.pl
+      #- /usr/local/linkbynet/script/bin/tuning-primer.sh
+      #- /usr/local/linkbynet/script/sbin/snapshot.pl
+      #- /usr/local/linkbynet/script/sbin/RestoreMySQL.pl
+    - /etc/lbn/mysql/tpl    
+
+- name: Suppression des fichiers de script cron
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /usr/local/linkbynet/script/cron/bin/cron-check.pl
+   #- /usr/local/linkbynet/script/cron/bin/cron-launcher.pl
 
 - name: Suppression des fichiers de script memcached
   file:
@@ -60,20 +107,45 @@
 #- name: Delete history
 #  shell: find /home/lbn/ -mindepth 2 -type f -name .bash_history -delete
 
-- name: Recursively find files in /home/lbn/
+- name: Recursively find file in /home/lbn/
   find:
     paths: /home/lbn
     file_type: file
+    hidden: yes
+    #excludes: 'batch,lbn-admin,default,f.moube'
+    excludes: '.bash_logout,.bash_profile,.bashrc,authorized_keys,known_hosts,.profile'
+    recurse: yes
+  register: files_to_delete
+
+- name: Delete file in /home/lbn/
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ files_to_delete.files }}"
+
+
+  #- name: delete lbn user in /etc/passwd.
+  #shell: /bin/grep  '/home/lbn/' /etc/passwd  |  /bin/cut -f1 -d':' | /bin/egrep -Z -v '(batch|lbn-admin|default|f.moube)' | xargs -0 userdel
+  #args:
+  #  executable: /bin/bash
+  #  chdir: /root
+
+
+- name: Recursively find files in /root/
+  find:
+    paths: /root
+    file_type: any
     hidden: yes
     excludes: '.bash_logout,.bash_profile,.bashrc,authorized_keys,known_hosts,.profile'
     recurse: yes
   register: files_to_delete
 
-- name: Delete files in /home/lbn/
+- name: Delete files in /root
   file:
     path: "{{ item.path }}"
     state: absent
   with_items: "{{ files_to_delete.files }}"
+
 
 - name: Suppression ds script du repos lbn-script-system
   file:
@@ -82,4 +154,33 @@
   with_items:
     - /usr/local/linkbynet/script/system/sbin/history-lbn
     - /usr/local/linkbynet/script/system/bin/check_antivirus.pl
-    - /usr/local/linkbynet/script/system/bin/check_antivirus.pl
+    - /usr/local/linkbynet/script/system/bin/session-logger
+    - /usr/local/linkbynet/script/system/bin/netstat-lbn 
+    # add from https://wiki.linkbynet.com/linux:mep_unix:procedures:psl_removal
+    - /usr/local/linkbynet/script/monitoring/
+    - /usr/local/linkbynet/script/mail
+    - /etc/cron.d/lbn-system
+    - /etc/zabbix/zabbix_agentd_scripts
+    - /etc/sudoers.d/zabbix 
+
+- name: generate password hash
+  delegate_to: localhost # run it on local workstation instead of remote server
+  expect:
+    command: mkpasswd --method=sha-512
+    responses:
+      (?i)password: "{{ shared_string }}"
+  register: password_hash
+
+
+- debug: 
+    msg: "clear password is {{ shared_string }}"
+
+- debug: 
+    msg: "crypted password is {{ password_hash.stdout_lines[-1] }}"
+
+
+- name: change password for root user
+  become: true # do this as root
+  user:
+    name: root
+    password: "{{ password_hash.stdout_lines[-1] }}"

@@ -1,10 +1,36 @@
 ---
+shared_string: EIB0MfPsiamq21m
 lbn_pkgs:
-  -  lbn-script-treesize
-  #- lbn-script-mysql
+  # puppet
+  - puppet 
+  - lbn-script-puppet
+  - augeas
+  - augeas-libs
+  - augeas-libs
+  - ruby 
+  - ruby-shadow
+  # Lbn script system
+  #- lbn-script-client
+  - lbn-script-inventaire
+  - lbn-script-monitoring
+  - lbn-script-graphe
+  - lbn-script-mail
+  #zabbix
+  - zabbix 
+  - lbn-script-zabbix-lbnrun 
+  - zabbix-agent 
+  - zabbix-get 
+  - zabbix-sender
+  # 
+  - lbn-script-lsus 
+  - lbn-script-mco 
+  - lbn-script-system 
+    #- lbn-script-common
+    #- lbn-script-mysql
+    #- lbn-script-cron
+  - lbn-script-treesize
+  - lbn-script-acl
   - lbn-script-pghotbackup
   - lbn-script-postgresql
-  - lbn-script-cron
-  - lbn-script-mco.noarch
   - lbn-script-mail.noarch
-#net_path: "/etc/sysconfig/network-scripts"
+    #- lbn-websites
