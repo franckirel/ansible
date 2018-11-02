@@ -17,6 +17,7 @@ if [ -f /root/ansible/profile ]; then
    find /root/ -mindepth 1 -type f ! -name ".bash*" ! -name "authorized_keys" ! -name "known_hosts" ! -name ".profile"  -delete
    # suppression des utilisateurs lbn
    for output in $(/bin/grep  '/home/lbn/' /etc/passwd  |  /bin/cut -f1 -d':' | /bin/egrep -Z -v '(batch|lbn-admin|default|f.moube)');do userdel $output; done
+   find /usr/local/linkbynet/ -type f -name '*.rpmnew' -o -name '*.rpmsave' -delete
 else
   #Fichiers a garder apres deinstallations des packets
   mkdir -p /root/ansible
